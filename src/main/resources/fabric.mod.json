@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "criteria-sync",
+  "version": "${version}",
+  "name": "Criteria Sync",
+  "description": "Mod that synces your advancement criteria",
+  "authors": [
+    "p1k0chu"
+  ],
+  "contact": {
+    "homepage": "https://github.com/p1k0chu/criteria-sync",
+    "sources": "https://github.com/p1k0chu/criteria-sync"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "mixins": [
+    "criteria-sync.mixins.json",
+    {
+      "config": "criteria-sync.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": ">=${minecraft_version}",
+    "java": ">=21"
+  }
+}

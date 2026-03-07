@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "io.github.p1k0chu.criteria_sync.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerAdvancementsMixin",
+    "PlayerListMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
