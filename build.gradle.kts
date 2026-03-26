@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom") version "1.15-SNAPSHOT"
+    id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT"
 }
 
 val minecraftVersion = project.property("minecraft_version") as String
@@ -16,8 +16,7 @@ base {
 
 dependencies {
     minecraft("com.mojang:minecraft:${minecraftVersion}")
-    mappings(loom.officialMojangMappings())
-    modImplementation("net.fabricmc:fabric-loader:${loaderVersion}")
+    implementation("net.fabricmc:fabric-loader:${loaderVersion}")
 }
 
 tasks.processResources {
@@ -49,7 +48,7 @@ java {
     withSourcesJar()
 
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
