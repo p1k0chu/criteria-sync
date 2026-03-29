@@ -57,7 +57,6 @@ public abstract class PlayerAdvancementsMixin implements AwardCriterion {
             progressChanged.add(adv);
 
             if (!wasDone && progress.isDone()) {
-                adv.value().rewards().grant(player);
                 markForVisibilityUpdate(adv);
             }
         }
