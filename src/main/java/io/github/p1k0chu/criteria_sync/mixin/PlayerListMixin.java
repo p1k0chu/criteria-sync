@@ -1,6 +1,7 @@
 package io.github.p1k0chu.criteria_sync.mixin;
 
 import io.github.p1k0chu.criteria_sync.AwardCriterion;
+import io.github.p1k0chu.criteria_sync.CriteriaSync;
 import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +32,9 @@ public class PlayerListMixin {
         var advs = serverPlayer.getAdvancements();
 
         for (var advHolder : server.getAdvancements().getAllAdvancements()) {
+            if (CriteriaSync.isAdvancementBlocked(advHolder.toString()) || advHolder.value().display().isEmpty()) {
+                continue;
+            }
             var progress = advs.getOrStartProgress(advHolder);
 
             for (var otherPlayer : players) {

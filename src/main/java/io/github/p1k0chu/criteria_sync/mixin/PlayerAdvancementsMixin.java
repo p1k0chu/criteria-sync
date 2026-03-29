@@ -1,6 +1,7 @@
 package io.github.p1k0chu.criteria_sync.mixin;
 
 import io.github.p1k0chu.criteria_sync.AwardCriterion;
+import io.github.p1k0chu.criteria_sync.CriteriaSync;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.server.PlayerAdvancements;
@@ -37,6 +38,10 @@ public abstract class PlayerAdvancementsMixin implements AwardCriterion {
 
     @Inject(method = "award", at = @At("RETURN"))
     void award(AdvancementHolder advancementHolder, String string, CallbackInfoReturnable<Boolean> cir) {
+        if (CriteriaSync.isAdvancementBlocked(advancementHolder.toString()) || advancementHolder.value().display().isEmpty()) {
+            return;
+        }
+
         if (cir.getReturnValue()) {
             int thisId = this.player.getId();
             for (var player : this.playerList.getPlayers()) {
