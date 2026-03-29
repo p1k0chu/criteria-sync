@@ -1,35 +1,25 @@
 plugins {
-    id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT"
+    id("net.fabricmc.fabric-loom")
 }
-
-val minecraftVersion = project.property("minecraft_version") as String
-val loaderVersion = project.property("loader_version") as String
-val modId = project.property("mod_id") as String
 
 repositories {
     mavenCentral()
 }
 
 base {
-    archivesName = modId
+    archivesName = providers.gradleProperty("archives_base_name")
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${minecraftVersion}")
-    implementation("net.fabricmc:fabric-loader:${loaderVersion}")
+    minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
+    implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
 }
 
 tasks.processResources {
     inputs.property("version", version)
-    inputs.property("loader_version", loaderVersion)
-    inputs.property("minecraft_version", minecraftVersion)
 
     filesMatching("fabric.mod.json") {
-        expand(
-            "version" to version,
-            "loader_version" to loaderVersion,
-            "minecraft_version" to minecraftVersion
-        )
+        expand("version" to version)
     }
 }
 
@@ -37,7 +27,7 @@ loom {
     splitEnvironmentSourceSets()
 
     mods {
-        create(modId) {
+        create("criteria-sync") {
             sourceSet(sourceSets["main"])
             sourceSet(sourceSets["client"])
         }
@@ -57,8 +47,10 @@ java {
 }
 
 tasks.jar {
+	inputs.property("archivesName", base.archivesName)
+
     from("LICENSE") {
-        rename { "${it}_$modId" }
+        rename { "${it}_${base.archivesName.get()}" }
     }
 }
 
