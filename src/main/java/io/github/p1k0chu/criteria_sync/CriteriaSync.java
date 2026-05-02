@@ -2,7 +2,6 @@ package io.github.p1k0chu.criteria_sync;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.Strictness;
 import com.google.gson.reflect.TypeToken;
 import io.github.p1k0chu.criteria_sync.constants.AdvancementIDConstants;
 import net.fabricmc.api.ModInitializer;
@@ -10,7 +9,9 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+//? >=26.1
 import net.minecraft.server.permissions.Permissions;
+
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,10 @@ public class CriteriaSync implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("criteria-sync");
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
-            .setStrictness(Strictness.LENIENT)
+            //? >=26.1 {
+            .setStrictness(com.google.gson.Strictness.LENIENT)
+            //? } else
+            //.setLenient()
             .create();
 
     @NonNull
@@ -45,7 +49,10 @@ public class CriteriaSync implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> {
             dispatcher.register(Commands.literal("criteriasync")
                     .then(Commands.literal("reloadconfig")
+                            //? >=26.1 {
                             .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))
+                            //? } else
+                            //.requires(source -> source.hasPermission(3))
                             .executes(ctx -> {
                                 try {
                                     int n = reloadBlockedAdvancements();

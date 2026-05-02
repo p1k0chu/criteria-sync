@@ -1,57 +1,84 @@
-plugins {
-    id("net.fabricmc.fabric-loom")
-}
+import net.fabricmc.loom.api.LoomGradleExtensionAPI
+import net.fabricmc.loom.api.fabricapi.FabricApiExtension
 
-repositories {
-    mavenCentral()
-}
+val obfuscated = sc.current.parsed < "26.1"
+plugins.apply(if(obfuscated) "net.fabricmc.fabric-loom-remap" else "net.fabricmc.fabric-loom")
+val loom = the<LoomGradleExtensionAPI>()
+val fabricApi = the<FabricApiExtension>()
+val modImplementation = if(obfuscated) configurations.named("modImplementation") else configurations.implementation
+val modJar = if(obfuscated) tasks.named<Zip>("remapJar") else tasks.named<Zip>("jar")
 
 base {
-    archivesName = providers.gradleProperty("archives_base_name")
+    archivesName = rootProject.name
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
-    implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
-}
+    // https://github.com/FabricMC/fabric
+    fun fapi(vararg modules: String) {
+        modules.forEach {
+            modImplementation(fabricApi.module(it, project.property("deps.fabric_api") as String))
+        }
+    }
 
-tasks.processResources {
-    inputs.property("version", version)
+    "minecraft"("com.mojang:minecraft:${sc.current.version}")
+    modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
+    fapi("fabric-command-api-v2")
 
-    filesMatching("fabric.mod.json") {
-        expand("version" to version)
+    if (obfuscated) {
+        "mappings"(loom.officialMojangMappings())
+    }
+
+    if (sc.current.parsed < "1.21.11") {
+        compileOnly("org.jspecify:jspecify:1.0.0")
     }
 }
 
-loom {
+tasks.processResources {
+    val props = mapOf(
+        "version" to version,
+        "minecraft" to project.property("fmj.minecraft"),
+        "fapi" to project.property("deps.fabric_api")
+    )
+    props.forEach { k, v -> inputs.property(k, v) }
+
+    filesMatching("fabric.mod.json") {
+        expand(props)
+    }
+}
+
+extensions.configure<LoomGradleExtensionAPI>() {
     splitEnvironmentSourceSets()
 
     mods {
-        create("criteria-sync") {
+        create(rootProject.name) {
             sourceSet(sourceSets["main"])
             sourceSet(sourceSets["client"])
         }
     }
+}
 
+
+tasks.register<Copy>("buildAndCollect") {
+    group = "build"
+    from(modJar.flatMap { it.archiveFile } /*, remapSourcesJar.map { it.archiveFile }*/)
+    into(rootProject.layout.buildDirectory.file("libs"))
+    dependsOn("build")
 }
 
 java {
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    // if it is present.
-    // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
+    val j = JavaVersion.valueOf("VERSION_${project.property("java_version")}")
+    targetCompatibility = j
+    sourceCompatibility = j
 }
 
 tasks.jar {
-	inputs.property("archivesName", base.archivesName)
+    val name = rootProject.name
+    inputs.property("project_name", name)
 
     from("LICENSE") {
-        rename { "${it}_${base.archivesName.get()}" }
+        rename { "${it}_${name}" }
     }
 }
 
